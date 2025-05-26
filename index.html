@@ -5,40 +5,179 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Калькулятор прироста</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
-  <div class="bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm">
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4 transition-all duration-300" id="body">
+  <div class="bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm" id="card">
+    <button onclick="toggleTheme()" class="absolute top-4 right-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition">Сменить тему</button>
     <h1 class="text-xl font-bold mb-4 text-center">Калькулятор прироста (%)</h1>
     <label for="oldPrice" class="block mb-2">Старая цена:
-      <input type="number" id="oldPrice" step="any" min="0" placeholder="Введите старую цену" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" aria-label="Старая цена">
+      <input type="number" id="oldPrice" step="any" min="0" placeholder="Введите старую цену" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1 text-white" aria-label="Старая цена">
     </label>
     <label for="newPrice" class="block mb-2">Новая цена:
-      <input type="number" id="newPrice" step="any" min="0" placeholder="Введите новую цену" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" aria-label="Новая цена">
+      <input type="number" id="newPrice" step="any" min="0" placeholder="Введите новую цену" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1 text-white" aria-label="Новая цена">
     </label>
-    <label for="entryAmount" class="block mb-2">Сумма входа:
-      <input type="number" id="entryAmount" step="any" min="0" placeholder="Введите сумму входа" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" aria-label="Сумма входа">
-    </label>
-    <label for="currency" class="block mb-2">Валюта:
-      <select id="currency" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
-        <option value="$">USD ($)</option>
-        <option value="€">EUR (€)</option>
-        <option value="₴">UAH (₴)</option>
-      </select>
+    <label for="entryAmount" class="block mb-2">Сумма входа ($):
+      <input type="number" id="entryAmount" step="any" min="0" placeholder="Введите сумму входа" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1 text-white" aria-label="Сумма входа">
     </label>
     <label for="leverage" class="block mb-4">Плечо: <span id="leverageValue" class="font-semibold">1</span>x
-      <input type="range" id="leverage" min="1" max="100" value="1" class="w-full mt-1" oninput="document.getElementById('leverageValue').textContent = this.value">
+      <input type="range" id="leverage" min="1" max="400" step="1" value="1" class="w-full mt-1">
     </label>
     <div class="flex space-x-2">
       <button onclick="calculate()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition">Посчитать</button>
       <button onclick="resetForm()" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition">Сбросить</button>
     </div>
     <p id="result" class="text-center text-lg font-semibold mt-4"></p>
-    <canvas id="priceChart" class="mt-4"></canvas>
     <div id="history" class="mt-4 text-sm"></div>
   </div>
   <script>
-    // Вставьте улучшенный JS-код здесь
+    // Завантаження даних і теми при завантаженні сторінки
+    window.onload = function() {
+      const savedData = JSON.parse(localStorage.getItem('calcData')) || {};
+      document.getElementById('oldPrice').value = savedData.oldPrice || '';
+      document.getElementById('newPrice').value = savedData.newPrice || '';
+      document.getElementById('entryAmount').value = savedData.entryAmount || '';
+      document.getElementById('leverage').value = savedData.leverage || 1;
+      document.getElementById('leverageValue').textContent = savedData.leverage || 1;
+
+      // Завантаження теми
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      applyTheme(savedTheme);
+      displayHistory();
+    };
+
+    // Зміна теми
+    function toggleTheme() {
+      const currentTheme = localStorage.getItem('theme') === 'light' ? 'dark' : 'light';
+      localStorage.setItem('theme', currentTheme);
+      applyTheme(currentTheme);
+    }
+
+    function applyTheme(theme) {
+      const body = document.getElementById('body');
+      const card = document.getElementById('card');
+      const inputs = document.querySelectorAll('input[type="number"]');
+      if (theme === 'light') {
+        body.classList.remove('bg-gray-900', 'text-white');
+        body.classList.add('bg-white', 'text-black');
+        card.classList.remove('bg-gray-800');
+        card.classList.add('bg-gray-200');
+        inputs.forEach(input => {
+          input.classList.remove('bg-gray-700', 'text-white', 'border-gray-600');
+          input.classList.add('bg-gray-100', 'text-black', 'border-gray-300');
+        });
+      } else {
+        body.classList.remove('bg-white', 'text-black');
+        body.classList.add('bg-gray-900', 'text-white');
+        card.classList.remove('bg-gray-200');
+        card.classList.add('bg-gray-800');
+        inputs.forEach(input => {
+          input.classList.remove('bg-gray-100', 'text-black', 'border-gray-300');
+          input.classList.add('bg-gray-700', 'text-white', 'border-gray-600');
+        });
+      }
+    }
+
+    // Оновлення значення плеча з "магнітним" ефектом
+    document.getElementById('leverage').addEventListener('input', function() {
+      document.getElementById('leverageValue').textContent = this.value;
+    });
+
+    document.getElementById('leverage').addEventListener('change', function() {
+      let value = parseInt(this.value);
+      // Округлення до найближчого кратного 10
+      value = Math.round(value / 10) * 10;
+      // Обмеження до min=1 і max=400
+      value = Math.max(1, Math.min(400, value));
+      this.value = value;
+      document.getElementById('leverageValue').textContent = value;
+      saveFormData();
+    });
+
+    // Збереження даних форми
+    function saveFormData() {
+      const formData = {
+        oldPrice: document.getElementById('oldPrice').value,
+        newPrice: document.getElementById('newPrice').value,
+        entryAmount: document.getElementById('entryAmount').value,
+        leverage: document.getElementById('leverage').value
+      };
+      localStorage.setItem('calcData', JSON.stringify(formData));
+    }
+
+    // Обробка введення для збереження даних
+    document.getElementById('oldPrice').addEventListener('input', saveFormData);
+    document.getElementById('newPrice').addEventListener('input', saveFormData);
+    document.getElementById('entryAmount').addEventListener('input', saveFormData);
+
+    // Розрахунок
+    function calculate() {
+      const oldPrice = parseFloat(document.getElementById('oldPrice').value);
+      const newPrice = parseFloat(document.getElementById('newPrice').value);
+      const leverage = parseInt(document.getElementById('leverage').value);
+      const entryAmount = parseFloat(document.getElementById('entryAmount').value);
+      const result = document.getElementById('result');
+
+      if (!oldPrice || !newPrice || !entryAmount || oldPrice <= 0 || newPrice <= 0 || entryAmount <= 0) {
+        result.textContent = "Введите корректные положительные значения!";
+        result.className = "text-center text-lg font-semibold text-red-400";
+        return;
+      }
+
+      const percent = ((newPrice - oldPrice) / oldPrice) * 100;
+      const leveragedPercent = percent * leverage;
+      const profit = entryAmount * (leveragedPercent / 100);
+
+      const profitColor = profit >= 0 ? 'text-green-400' : 'text-red-400';
+      result.className = `text-center text-lg font-semibold ${profitColor}`;
+      result.textContent = `Рост: ${percent.toFixed(2)}% | С плечом ${leverage}x: ${leveragedPercent.toFixed(2)}% | Прибыль: $${profit.toFixed(2)}`;
+
+      saveToHistory(oldPrice, newPrice, leverage, entryAmount, percent, leveragedPercent, profit);
+    }
+
+    // Скидання форми
+    function resetForm() {
+      document.getElementById('oldPrice').value = '';
+      document.getElementById('newPrice').value = '';
+      document.getElementById('entryAmount').value = '';
+      document.getElementById('leverage').value = 1;
+      document.getElementById('leverageValue').textContent = '1';
+      document.getElementById('result').textContent = '';
+      document.getElementById('result').className = 'text-center text-lg font-semibold';
+      localStorage.removeItem('calcData');
+      saveFormData();
+    }
+
+    // Збереження історії
+    function saveToHistory(oldPrice, newPrice, leverage, entryAmount, percent, leveragedPercent, profit) {
+      const history = JSON.parse(localStorage.getItem('calcHistory')) || [];
+      history.push({
+        oldPrice,
+        newPrice,
+        leverage,
+        entryAmount,
+        percent,
+        leveragedPercent,
+        profit,
+        timestamp: new Date().toLocaleString('ru-RU')
+      });
+      localStorage.setItem('calcHistory', JSON.stringify(history.slice(-5)));
+      displayHistory();
+    }
+
+    // Відображення історії
+    function displayHistory() {
+      const history = JSON.parse(localStorage.getItem('calcHistory')) || [];
+      const historyDiv = document.getElementById('history');
+      historyDiv.innerHTML = '<h2 class="text-lg font-bold mb-2">История расчетов</h2>';
+      history.forEach(item => {
+        historyDiv.innerHTML += `<p class="mb-1">(${item.timestamp}) Рост: ${item.percent.toFixed(2)}%, Прибыль: $${item.profit.toFixed(2)}</p>`;
+      });
+    }
+
+    // Обробка Enter
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') calculate();
+    });
   </script>
 </body>
 </html>
