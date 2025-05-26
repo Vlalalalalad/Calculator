@@ -34,9 +34,20 @@
       opacity: 0.8;
       transform: translateZ(-30px); /* Slight 3D depth */
     }
+    .arrow-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
   </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4 flex-col">
+  <div class="arrow-indicator" id="arrowIndicator">
+    <!-- Dynamically updated -->
+  </div>
   <div class="carousel-container">
     <div class="carousel" id="carousel">
       <!-- Long Calculator -->
@@ -97,6 +108,7 @@
       // Start with Long calculator
       currentIndex = 0; // Start at Long (index 0)
       updateCarouselPosition(false);
+      updateArrowIndicator();
     };
 
     // Update leverage value
@@ -161,6 +173,17 @@
     let startX = 0;
     const carousel = document.getElementById('carousel');
     const items = document.querySelectorAll('.carousel-item');
+    const arrowIndicator = document.getElementById('arrowIndicator');
+
+    function updateArrowIndicator() {
+      if (currentIndex === 0) {
+        // On Long: show "→ Short" (right arrow)
+        arrowIndicator.innerHTML = `→ <span class="text-red-400">Short</span>`;
+      } else {
+        // On Short: show "← Long" (left arrow)
+        arrowIndicator.innerHTML = `← <span class="text-green-400">Long</span>`;
+      }
+    }
 
     function updateCarouselPosition(animate = true) {
       carousel.style.transition = animate ? 'transform 0.5s ease-in-out' : 'none';
@@ -171,6 +194,9 @@
         item.classList.toggle('active', index === currentIndex);
         item.classList.toggle('inactive', index !== currentIndex);
       });
+
+      // Update arrow indicator
+      updateArrowIndicator();
     }
 
     carousel.addEventListener('touchstart', (e) => {
@@ -184,9 +210,15 @@
       if (e.target.type === 'range') return;
       const endX = e.changedTouches[0].clientX;
       if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
-        // Toggle between Long (0) and Short (1)
-        currentIndex = currentIndex === 0 ? 1 : 0;
-        updateCarouselPosition();
+        if (currentIndex === 0 && endX < startX) {
+          // On Long, swipe left: switch to Short
+          currentIndex = 1;
+          updateCarouselPosition();
+        } else if (currentIndex === 1 && endX > startX) {
+          // On Short, swipe right: switch to Long
+          currentIndex = 0;
+          updateCarouselPosition();
+        }
       }
     });
 
@@ -201,9 +233,15 @@
       if (e.target.type === 'range') return;
       const endX = e.clientX;
       if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
-        // Toggle between Long (0) and Short (1)
-        currentIndex = currentIndex === 0 ? 1 : 0;
-        updateCarouselPosition();
+        if (currentIndex === 0 && endX < startX) {
+          // On Long, swipe left: switch to Short
+          currentIndex = 1;
+          updateCarouselPosition();
+        } else if (currentIndex === 1 && endX > startX) {
+          // On Short, swipe right: switch to Long
+          currentIndex = 0;
+          updateCarouselPosition();
+        }
       }
     });
   </script>
