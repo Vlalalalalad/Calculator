@@ -12,6 +12,7 @@
     <label class="block mb-2">Старая цена:
       <input type="number" id="oldPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
     </label>
+    <button onclick="swapPrices()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-2 transition">↔</button>
     <label class="block mb-2">Новая цена:
       <input type="number" id="newPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
     </label>
@@ -19,7 +20,7 @@
       <input type="number" id="entryAmount" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
     </label>
     <label class="block mb-4">Плечо: <span id="leverageValue" class="font-semibold">1</span>x
-      <input type="range" id="leverage" min="1" max="100" value="1" class="w-full mt-1">
+      <input type="range" id="leverage" min="1" max="400" step="1" value="1" class="w-full mt-1">
     </label>
     <button onclick="calculate()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4 transition">Посчитать</button>
     <p id="result" class="text-center text-lg font-semibold"></p>
@@ -35,9 +36,19 @@
       document.getElementById('leverageValue').textContent = savedData.leverage || 1;
     };
 
-    // Оновлення значення плеча
+    // Оновлення значення плеча з "магнітним" ефектом
     document.getElementById('leverage').addEventListener('input', function() {
       document.getElementById('leverageValue').textContent = this.value;
+    });
+
+    document.getElementById('leverage').addEventListener('change', function() {
+      let value = parseInt(this.value);
+      // Округлення до найближчого кратного 10
+      value = Math.round(value / 10) * 10;
+      // Обмеження до min=1 і max=400
+      value = Math.max(1, Math.min(400, value));
+      this.value = value;
+      document.getElementById('leverageValue').textContent = value;
       saveFormData();
     });
 
@@ -56,6 +67,16 @@
     document.getElementById('oldPrice').addEventListener('input', saveFormData);
     document.getElementById('newPrice').addEventListener('input', saveFormData);
     document.getElementById('entryAmount').addEventListener('input', saveFormData);
+
+    // Обмін значень oldPrice і newPrice
+    function swapPrices() {
+      const oldPrice = document.getElementById('oldPrice').value;
+      const newPrice = document.getElementById('newPrice').value;
+      document.getElementById('oldPrice').value = newPrice;
+      document.getElementById('newPrice').value = oldPrice;
+      saveFormData();
+      calculate(); // Перерахунок після обміну
+    }
 
     // Розрахунок
     function calculate() {
