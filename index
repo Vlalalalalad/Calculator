@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калькулятор прироста</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+  <div class="bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm">
+    <h1 class="text-xl font-bold mb-4 text-center">Калькулятор прироста (%)</h1>
+    <label for="oldPrice" class="block mb-2">Старая цена:
+      <input type="number" id="oldPrice" step="any" min="0" placeholder="Введите старую цену" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" aria-label="Старая цена">
+    </label>
+    <label for="newPrice" class="block mb-2">Новая цена:
+      <input type="number" id="newPrice" step="any" min="0" placeholder="Введите новую цену" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" aria-label="Новая цена">
+    </label>
+    <label for="entryAmount" class="block mb-2">Сумма входа:
+      <input type="number" id="entryAmount" step="any" min="0" placeholder="Введите сумму входа" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" aria-label="Сумма входа">
+    </label>
+    <label for="currency" class="block mb-2">Валюта:
+      <select id="currency" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
+        <option value="$">USD ($)</option>
+        <option value="€">EUR (€)</option>
+        <option value="₴">UAH (₴)</option>
+      </select>
+    </label>
+    <label for="leverage" class="block mb-4">Плечо: <span id="leverageValue" class="font-semibold">1</span>x
+      <input type="range" id="leverage" min="1" max="100" value="1" class="w-full mt-1" oninput="document.getElementById('leverageValue').textContent = this.value">
+    </label>
+    <div class="flex space-x-2">
+      <button onclick="calculate()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition">Посчитать</button>
+      <button onclick="resetForm()" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition">Сбросить</button>
+    </div>
+    <p id="result" class="text-center text-lg font-semibold mt-4"></p>
+    <canvas id="priceChart" class="mt-4"></canvas>
+    <div id="history" class="mt-4 text-sm"></div>
+  </div>
+  <script>
+    // Вставьте улучшенный JS-код здесь
+  </script>
+</body>
+</html>
