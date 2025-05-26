@@ -1,89 +1,137 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Калькулятор прироста</title>
+  <title>Profit Calculator</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .calculator-container {
+      width: 100%;
+      max-width: 448px;
+      overflow: hidden;
+      position: relative;
+    }
+    .calculators {
+      display: flex;
+      transition: transform 0.3s ease-in-out;
+    }
+    .calculator {
+      min-width: 100%;
+      padding: 1rem;
+    }
+  </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
-  <div class="bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm">
-    <h1 class="text-xl font-bold mb-4 text-center">Калькулятор прироста (%)</h1>
-    <label class="block mb-2">Старая цена:
-      <input type="number" id="oldPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
-    </label>
-    <label class="block mb-2">Новая цена:
-      <input type="number" id="newPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
-    </label>
-    <label class="block mb-2">Сумма входа ($):
-      <input type="number" id="entryAmount" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
-    </label>
-    <label class="block mb-4">Плечо: <span id="leverageValue" class="font-semibold">1</span>x
-      <input type="range" id="leverage" min="1" max="400" value="1" class="w-full mt-1">
-    </label>
-    <label class="block mb-4">
-      <input type="checkbox" id="isShort" class="mr-2">Шорт (вниз)
-    </label>
-    <button onclick="calculate()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4 transition">Посчитать</button>
-    <p id="result" class="text-center text-lg font-semibold"></p>
+  <div class="calculator-container">
+    <div class="calculators" id="calculators">
+      <!-- Long Calculator -->
+      <div class="calculator bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm">
+        <h1 class="text-xl font-bold mb-4 text-center">Profit Calculator (Long)</h1>
+        <label class="block mb-2">Entry Price:
+          <input type="number" id="longEntryPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
+        </label>
+        <label class="block mb-2">Exit Price:
+          <input type="number" id="longExitPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
+        </label>
+        <label class="block mb-2">Entry Amount ($):
+          <input type="number" id="longEntryAmount" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
+        </label>
+        <label class="block mb-4">Leverage: <span id="longLeverageValue" class="font-semibold">1</span>x
+          <input type="range" id="longLeverage" min="1" max="400" value="1" class="w-full mt-1">
+        </label>
+        <button onclick="calculate('long')" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4 transition">Calculate</button>
+        <p id="longResult" class="text-center text-lg font-semibold"></p>
+      </div>
+      <!-- Short Calculator -->
+      <div class="calculator bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm">
+        <h1 class="text-xl font-bold mb-4 text-center">Profit Calculator (Short)</h1>
+        <label class="block mb-2">Entry Price:
+          <input type="number" id="shortEntryPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
+        </label>
+        <label class="block mb-2">Exit Price:
+          <input type="number" id="shortExitPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
+        </label>
+        <label class="block mb-2">Entry Amount ($):
+          <input type="number" id="shortEntryAmount" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
+        </label>
+        <label class="block mb-4">Leverage: <span id="shortLeverageValue" class="font-semibold">1</span>x
+          <input type="range" id="shortLeverage" min="1" max="400" value="1" class="w-full mt-1">
+        </label>
+        <button onclick="calculate('short')" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4 transition">Calculate</button>
+        <p id="shortResult" class="text-center text-lg font-semibold"></p>
+      </div>
+    </div>
   </div>
   <script>
-    // Завантаження даних із localStorage при завантаженні сторінки
+    // Load data from localStorage
     window.onload = function() {
-      const savedData = JSON.parse(localStorage.getItem('calcData')) || {};
-      document.getElementById('oldPrice').value = savedData.oldPrice || '';
-      document.getElementById('newPrice').value = savedData.newPrice || '';
-      document.getElementById('entryAmount').value = savedData.entryAmount || '';
-      document.getElementById('leverage').value = savedData.leverage || 1;
-      document.getElementById('leverageValue').textContent = savedData.leverage || 1;
-      document.getElementById('isShort').checked = savedData.isShort || false;
+      const longData = JSON.parse(localStorage.getItem('longData')) || {};
+      document.getElementById('longEntryPrice').value = longData.entryPrice || '';
+      document.getElementById('longExitPrice').value = longData.exitPrice || '';
+      document.getElementById('longEntryAmount').value = longData.entryAmount || '';
+      document.getElementById('longLeverage').value = longData.leverage || 1;
+      document.getElementById('longLeverageValue').textContent = longData.leverage || 1;
+
+      const shortData = JSON.parse(localStorage.getItem('shortData')) || {};
+      document.getElementById('shortEntryPrice').value = shortData.entryPrice || '';
+      document.getElementById('shortExitPrice').value = shortData.exitPrice || '';
+      document.getElementById('shortEntryAmount').value = shortData.entryAmount || '';
+      document.getElementById('shortLeverage').value = shortData.leverage || 1;
+      document.getElementById('shortLeverageValue').textContent = shortData.leverage || 1;
+
+      // Start with Long calculator
+      currentCalculator = 0;
+      updateCalculatorPosition();
     };
 
-    // Оновлення значення плеча
-    document.getElementById('leverage').addEventListener('input', function() {
-      document.getElementById('leverageValue').textContent = this.value;
-      saveFormData();
+    // Update leverage value
+    document.getElementById('longLeverage').addEventListener('input', function() {
+      document.getElementById('longLeverageValue').textContent = this.value;
+      saveFormData('long');
+    });
+    document.getElementById('shortLeverage').addEventListener('input', function() {
+      document.getElementById('shortLeverageValue').textContent = this.value;
+      saveFormData('short');
     });
 
-    // Збереження даних форми
-    function saveFormData() {
-      const formData = {
-        oldPrice: document.getElementById('oldPrice').value,
-        newPrice: document.getElementById('newPrice').value,
-        entryAmount: document.getElementById('entryAmount').value,
-        leverage: document.getElementById('leverage').value,
-        isShort: document.getElementById('isShort').checked
+    // Save form data
+    function saveFormData(type) {
+      const data = {
+        entryPrice: document.getElementById(`${type}EntryPrice`).value,
+        exitPrice: document.getElementById(`${type}ExitPrice`).value,
+        entryAmount: document.getElementById(`${type}EntryAmount`).value,
+        leverage: document.getElementById(`${type}Leverage`).value
       };
-      localStorage.setItem('calcData', JSON.stringify(formData));
+      localStorage.setItem(`${type}Data`, JSON.stringify(data));
     }
 
-    // Обробка введення для збереження даних
-    document.getElementById('oldPrice').addEventListener('input', saveFormData);
-    document.getElementById('newPrice').addEventListener('input', saveFormData);
-    document.getElementById('entryAmount').addEventListener('input', saveFormData);
-    document.getElementById('isShort').addEventListener('change', saveFormData);
+    // Handle input events for saving data
+    ['long', 'short'].forEach(type => {
+      ['EntryPrice', 'ExitPrice', 'EntryAmount'].forEach(field => {
+        document.getElementById(`${type}${field}`).addEventListener('input', () => saveFormData(type));
+      });
+    });
 
-    // Розрахунок
-    function calculate() {
-      const oldPrice = parseFloat(document.getElementById('oldPrice').value);
-      const newPrice = parseFloat(document.getElementById('newPrice').value);
-      const leverage = parseInt(document.getElementById('leverage').value);
-      const entryAmount = parseFloat(document.getElementById('entryAmount').value);
-      const isShort = document.getElementById('isShort').checked;
-      const result = document.getElementById('result');
+    // Calculation
+    function calculate(type) {
+      const entryPrice = parseFloat(document.getElementById(`${type}EntryPrice`).value);
+      const exitPrice = parseFloat(document.getElementById(`${type}ExitPrice`).value);
+      const leverage = parseInt(document.getElementById(`${type}Leverage`).value);
+      const entryAmount = parseFloat(document.getElementById(`${type}EntryAmount`).value);
+      const result = document.getElementById(`${type}Result`);
 
-      if (!oldPrice || !newPrice || !entryAmount) {
-        result.textContent = "Введите все значения!";
+      if (!entryPrice || !exitPrice || !entryAmount) {
+        result.textContent = "Enter all values!";
         result.className = "text-center text-lg font-semibold text-red-400";
         return;
       }
 
-      // Розрахунок відсотка залежно від лонг/шорт
       let percent;
-      if (isShort) {
-        percent = ((oldPrice - newPrice) / oldPrice) * 100; // Шорт: прибуток, якщо ціна падає
+      if (type === 'short') {
+        percent = ((entryPrice - exitPrice) / entryPrice) * 100; // Short: profit when price falls
       } else {
-        percent = ((newPrice - oldPrice) / oldPrice) * 100; // Лонг: прибуток, якщо ціна зростає
+        percent = ((exitPrice - entryPrice) / entryPrice) * 100; // Long: profit when price rises
       }
 
       const leveragedPercent = percent * leverage;
@@ -91,8 +139,41 @@
 
       const profitColor = profit >= 0 ? 'text-green-400' : 'text-red-400';
       result.className = `text-center text-lg font-semibold ${profitColor}`;
-      result.textContent = `Рост: ${percent.toFixed(2)}% | С плечом ${leverage}x: ${leveragedPercent.toFixed(2)}% | Прибыль: $${profit.toFixed(2)}`;
+      result.textContent = `Change: ${percent.toFixed(2)}% | With leverage ${leverage}x: ${leveragedPercent.toFixed(2)}% | Profit: $${profit.toFixed(2)}`;
     }
+
+    // Swipe handling for switching calculators
+    let currentCalculator = 0;
+    let startX = 0;
+    const calculators = document.getElementById('calculators');
+
+    function updateCalculatorPosition() {
+      calculators.style.transform = `translateX(-${currentCalculator * 100}%)`;
+    }
+
+    calculators.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+    });
+
+    calculators.addEventListener('touchend', (e) => {
+      const endX = e.changedTouches[0].clientX;
+      if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
+        currentCalculator = (currentCalculator + 1) % 2; // Cyclic switching
+        updateCalculatorPosition();
+      }
+    });
+
+    calculators.addEventListener('mousedown', (e) => {
+      startX = e.clientX;
+    });
+
+    calculators.addEventListener('mouseup', (e) => {
+      const endX = e.clientX;
+      if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
+        currentCalculator = (currentCalculator + 1) % 2; // Cyclic switching
+        updateCalculatorPosition();
+      }
+    });
   </script>
 </body>
 </html>
