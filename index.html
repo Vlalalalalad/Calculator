@@ -12,7 +12,6 @@
     <label class="block mb-2">Старая цена:
       <input type="number" id="oldPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
     </label>
-    <button onclick="swapPrices()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-2 transition">↔</button>
     <label class="block mb-2">Новая цена:
       <input type="number" id="newPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
     </label>
@@ -20,7 +19,10 @@
       <input type="number" id="entryAmount" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
     </label>
     <label class="block mb-4">Плечо: <span id="leverageValue" class="font-semibold">1</span>x
-      <input type="range" id="leverage" min="1" max="400" step="1" value="1" class="w-full mt-1">
+      <input type="range" id="leverage" min="1" max="400" value="1" class="w-full mt-1">
+    </label>
+    <label class="block mb-4">
+      <input type="checkbox" id="isShort" class="mr-2">Шорт (вниз)
     </label>
     <button onclick="calculate()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4 transition">Посчитать</button>
     <p id="result" class="text-center text-lg font-semibold"></p>
@@ -34,21 +36,12 @@
       document.getElementById('entryAmount').value = savedData.entryAmount || '';
       document.getElementById('leverage').value = savedData.leverage || 1;
       document.getElementById('leverageValue').textContent = savedData.leverage || 1;
+      document.getElementById('isShort').checked = savedData.isShort || false;
     };
 
-    // Оновлення значення плеча з "магнітним" ефектом
+    // Оновлення значення плеча
     document.getElementById('leverage').addEventListener('input', function() {
       document.getElementById('leverageValue').textContent = this.value;
-    });
-
-    document.getElementById('leverage').addEventListener('change', function() {
-      let value = parseInt(this.value);
-      // Округлення до найближчого кратного 10
-      value = Math.round(value / 10) * 10;
-      // Обмеження до min=1 і max=400
-      value = Math.max(1, Math.min(400, value));
-      this.value = value;
-      document.getElementById('leverageValue').textContent = value;
       saveFormData();
     });
 
@@ -58,7 +51,8 @@
         oldPrice: document.getElementById('oldPrice').value,
         newPrice: document.getElementById('newPrice').value,
         entryAmount: document.getElementById('entryAmount').value,
-        leverage: document.getElementById('leverage').value
+        leverage: document.getElementById('leverage').value,
+        isShort: document.getElementById('isShort').checked
       };
       localStorage.setItem('calcData', JSON.stringify(formData));
     }
@@ -67,16 +61,7 @@
     document.getElementById('oldPrice').addEventListener('input', saveFormData);
     document.getElementById('newPrice').addEventListener('input', saveFormData);
     document.getElementById('entryAmount').addEventListener('input', saveFormData);
-
-    // Обмін значень oldPrice і newPrice
-    function swapPrices() {
-      const oldPrice = document.getElementById('oldPrice').value;
-      const newPrice = document.getElementById('newPrice').value;
-      document.getElementById('oldPrice').value = newPrice;
-      document.getElementById('newPrice').value = oldPrice;
-      saveFormData();
-      calculate(); // Перерахунок після обміну
-    }
+    document.getElementById('isShort').addEventListener('change', saveFormData);
 
     // Розрахунок
     function calculate() {
@@ -84,6 +69,7 @@
       const newPrice = parseFloat(document.getElementById('newPrice').value);
       const leverage = parseInt(document.getElementById('leverage').value);
       const entryAmount = parseFloat(document.getElementById('entryAmount').value);
+      const isShort = document.getElementById('isShort').checked;
       const result = document.getElementById('result');
 
       if (!oldPrice || !newPrice || !entryAmount) {
@@ -92,7 +78,14 @@
         return;
       }
 
-      const percent = ((newPrice - oldPrice) / oldPrice) * 100;
+      // Розрахунок відсотка залежно від лонг/шорт
+      let percent;
+      if (isShort) {
+        percent = ((oldPrice - newPrice) / oldPrice) * 100; // Шорт: прибуток, якщо ціна падає
+      } else {
+        percent = ((newPrice - oldPrice) / oldPrice) * 100; // Лонг: прибуток, якщо ціна зростає
+      }
+
       const leveragedPercent = percent * leverage;
       const profit = entryAmount * (leveragedPercent / 100);
 
