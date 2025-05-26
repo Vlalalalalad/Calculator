@@ -11,7 +11,7 @@
       max-width: 448px;
       overflow: hidden;
       position: relative;
-      perspective: 1000px; /* 3D perspective */
+      perspective: 1200px; /* Softer 3D perspective */
     }
     .carousel {
       display: flex;
@@ -23,21 +23,22 @@
       padding: 1rem;
       transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
       transform-style: preserve-3d;
+      backface-visibility: hidden; /* Prevent distortion */
     }
     .carousel-item.active {
       opacity: 1;
-      transform: translateZ(0) rotateY(0deg); /* Visible */
+      transform: translateZ(0); /* Fully visible */
     }
     .carousel-item.inactive {
-      opacity: 0.5;
-      transform: translateZ(-100px) rotateY(30deg); /* 3D effect for inactive */
+      opacity: 0.7;
+      transform: translateZ(-50px); /* Slight 3D depth for inactive */
     }
   </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
   <div class="carousel-container">
     <div class="carousel" id="carousel">
-      <!-- Long Calculator (Clone for seamless loop) -->
+      <!-- Long Calculator (Clone) -->
       <div class="carousel-item bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm inactive" id="longCalcClone1">
         <h1 class="text-xl font-bold mb-4 text-center">Profit Calculator (Long)</h1>
         <label class="block mb-2">Entry Price:
@@ -91,7 +92,7 @@
         <button onclick="calculate('short')" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4 transition">Calculate</button>
         <p id="shortResult" class="text-center text-lg font-semibold"></p>
       </div>
-      <!-- Short Calculator (Clone for seamless loop) -->
+      <!-- Short Calculator (Clone) -->
       <div class="carousel-item bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm inactive" id="shortCalcClone2">
         <h1 class="text-xl font-bold mb-4 text-center">Profit Calculator (Short)</h1>
         <label class="block mb-2">Entry Price:
@@ -208,19 +209,17 @@
       });
 
       // Seamless loop
-      if (currentIndex === 0) {
-        // At Long clone (start), jump to original Long (index 1)
-        setTimeout(() => {
+      setTimeout(() => {
+        if (currentIndex === 0) {
+          // At Long clone (start), jump to original Long (index 1)
           currentIndex = 1;
           updateCarouselPosition(false);
-        }, 500); // After animation
-      } else if (currentIndex === totalItems - 1) {
-        // At Short clone (end), jump to original Short (index 2)
-        setTimeout(() => {
+        } else if (currentIndex === totalItems - 1) {
+          // At Short clone (end), jump to original Short (index 2)
           currentIndex = 2;
           updateCarouselPosition(false);
-        }, 500); // After animation
-      }
+        }
+      }, animate ? 500 : 0); // After animation if animating
     }
 
     carousel.addEventListener('touchstart', (e) => {
@@ -231,11 +230,11 @@
       const endX = e.changedTouches[0].clientX;
       if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
         if (endX > startX) {
-          // Swipe right: move to previous
-          currentIndex = (currentIndex - 1 + totalItems) % totalItems;
+          // Swipe right: move to previous (Short if on Long)
+          currentIndex = currentIndex === 1 ? 0 : 2;
         } else {
-          // Swipe left: move to next
-          currentIndex = (currentIndex + 1) % totalItems;
+          // Swipe left: move to next (Short if on Long)
+          currentIndex = currentIndex === 1 ? 2 : 3;
         }
         updateCarouselPosition();
       }
@@ -249,11 +248,11 @@
       const endX = e.clientX;
       if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
         if (endX > startX) {
-          // Swipe right: move to previous
-          currentIndex = (currentIndex - 1 + totalItems) % totalItems;
+          // Swipe right: move to previous (Short if on Long)
+          currentIndex = currentIndex === 1 ? 0 : 2;
         } else {
-          // Swipe left: move to next
-          currentIndex = (currentIndex + 1) % totalItems;
+          // Swipe left: move to next (Short if on Long)
+          currentIndex = currentIndex === 1 ? 2 : 3;
         }
         updateCarouselPosition();
       }
