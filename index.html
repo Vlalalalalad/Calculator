@@ -16,10 +16,10 @@
     .carousel {
       display: flex;
       transition: transform 0.5s ease-in-out;
-      width: 400%; /* 4 items (2 real + 2 clones) */
+      width: 200%; /* 2 items */
     }
     .carousel-item {
-      width: 25%; /* Each item takes 1/4 of carousel width */
+      width: 50%; /* Each item takes 1/2 of carousel width */
       padding: 1rem;
       box-sizing: border-box; /* Prevent size changes */
       transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
@@ -75,42 +75,6 @@
         <button onclick="calculate('short')" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4 transition">Calculate</button>
         <p id="shortResult" class="text-center text-lg font-semibold"></p>
       </div>
-      <!-- Long Calculator (Clone) -->
-      <div class="carousel-item bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm inactive" id="longCalcClone">
-        <h1 class="text-xl font-bold mb-4 text-center">Profit Calculator (<span class="text-green-400">Long</span>)</h1>
-        <label class="block mb-2">Entry Price:
-          <input type="number" id="longEntryPriceClone" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" disabled>
-        </label>
-        <label class="block mb-2">Exit Price:
-          <input type="number" id="longExitPriceClone" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" disabled>
-        </label>
-        <label class="block mb-2">Entry Amount ($):
-          <input type="number" id="longEntryAmountClone" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" disabled>
-        </label>
-        <label class="block mb-4">Leverage: <span id="longLeverageValueClone" class="font-semibold">1</span>x
-          <input type="range" id="longLeverageClone" min="1" max="400" value="1" class="w-full mt-1" disabled>
-        </label>
-        <button onclick="calculate('long')" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4 transition" disabled>Calculate</button>
-        <p id="longResultClone" class="text-center text-lg font-semibold"></p>
-      </div>
-      <!-- Short Calculator (Clone) -->
-      <div class="carousel-item bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm inactive" id="shortCalcClone">
-        <h1 class="text-xl font-bold mb-4 text-center">Profit Calculator (<span class="text-red-400">Short</span>)</h1>
-        <label class="block mb-2">Entry Price:
-          <input type="number" id="shortEntryPriceClone" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" disabled>
-        </label>
-        <label class="block mb-2">Exit Price:
-          <input type="number" id="shortExitPriceClone" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" disabled>
-        </label>
-        <label class="block mb-2">Entry Amount ($):
-          <input type="number" id="shortEntryAmountClone" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" disabled>
-        </label>
-        <label class="block mb-4">Leverage: <span id="shortLeverageValueClone" class="font-semibold">1</span>x
-          <input type="range" id="shortLeverageClone" min="1" max="400" value="1" class="w-full mt-1" disabled>
-        </label>
-        <button onclick="calculate('short')" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4 transition" disabled>Calculate</button>
-        <p id="shortResultClone" class="text-center text-lg font-semibold"></p>
-      </div>
     </div>
   </div>
   <script>
@@ -131,7 +95,7 @@
       document.getElementById('shortLeverageValue').textContent = shortData.leverage || 1;
 
       // Start with Long calculator
-      currentIndex = 0; // Start at original Long (index 0)
+      currentIndex = 0; // Start at Long (index 0)
       updateCarouselPosition(false);
     };
 
@@ -193,34 +157,20 @@
     }
 
     // Carousel handling
-    let currentIndex = 0; // Start at Long (index 0)
+    let currentIndex = 0; // 0: Long, 1: Short
     let startX = 0;
     const carousel = document.getElementById('carousel');
     const items = document.querySelectorAll('.carousel-item');
-    const totalItems = items.length; // 4 (2 real + 2 clones)
 
     function updateCarouselPosition(animate = true) {
       carousel.style.transition = animate ? 'transform 0.5s ease-in-out' : 'none';
-      carousel.style.transform = `translateX(-${currentIndex * 25}%)`; // 25% per item
+      carousel.style.transform = `translateX(-${currentIndex * 50}%)`; // 50% per item
 
       // Update active/inactive classes
       items.forEach((item, index) => {
         item.classList.toggle('active', index === currentIndex);
         item.classList.toggle('inactive', index !== currentIndex);
       });
-
-      // Seamless loop
-      setTimeout(() => {
-        if (currentIndex === 2) {
-          // At Long clone, jump to original Long (index 0)
-          currentIndex = 0;
-          updateCarouselPosition(false);
-        } else if (currentIndex === 3) {
-          // At Short clone, jump to original Short (index 1)
-          currentIndex = 1;
-          updateCarouselPosition(false);
-        }
-      }, animate ? 500 : 0); // After animation if animating
     }
 
     carousel.addEventListener('touchstart', (e) => {
@@ -234,13 +184,8 @@
       if (e.target.type === 'range') return;
       const endX = e.changedTouches[0].clientX;
       if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
-        if (endX > startX) {
-          // Swipe right: move to previous
-          currentIndex = (currentIndex - 1 + totalItems) % totalItems;
-        } else {
-          // Swipe left: move to next
-          currentIndex = (currentIndex + 1) % totalItems;
-        }
+        // Toggle between Long (0) and Short (1)
+        currentIndex = currentIndex === 0 ? 1 : 0;
         updateCarouselPosition();
       }
     });
@@ -256,13 +201,8 @@
       if (e.target.type === 'range') return;
       const endX = e.clientX;
       if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
-        if (endX > startX) {
-          // Swipe right: move to previous
-          currentIndex = (currentIndex - 1 + totalItems) % totalItems;
-        } else {
-          // Swipe left: move to next
-          currentIndex = (currentIndex + 1) % totalItems;
-        }
+        // Toggle between Long (0) and Short (1)
+        currentIndex = currentIndex === 0 ? 1 : 0;
         updateCarouselPosition();
       }
     });
