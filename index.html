@@ -6,38 +6,57 @@
   <title>Profit Calculator</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
-    .calculator-container {
+    .carousel-container {
       width: 100%;
       max-width: 448px;
       overflow: hidden;
       position: relative;
       perspective: 1000px; /* 3D perspective */
     }
-    .calculators {
+    .carousel {
       display: flex;
       transition: transform 0.5s ease-in-out;
+      width: 400%; /* 4 items (2 real + 2 clones) */
     }
-    .calculator {
-      min-width: 100%;
+    .carousel-item {
+      width: 25%; /* Each item takes 1/4 of carousel width */
       padding: 1rem;
       transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
       transform-style: preserve-3d;
     }
-    .calculator.hidden {
-      opacity: 0;
-      transform: rotateY(90deg); /* 3D rotation when hidden */
-    }
-    .calculator.visible {
+    .carousel-item.active {
       opacity: 1;
-      transform: rotateY(0deg); /* Visible state */
+      transform: translateZ(0) rotateY(0deg); /* Visible */
+    }
+    .carousel-item.inactive {
+      opacity: 0.5;
+      transform: translateZ(-100px) rotateY(30deg); /* 3D effect for inactive */
     }
   </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
-  <div class="calculator-container">
-    <div class="calculators" id="calculators">
+  <div class="carousel-container">
+    <div class="carousel" id="carousel">
+      <!-- Long Calculator (Clone for seamless loop) -->
+      <div class="carousel-item bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm inactive" id="longCalcClone1">
+        <h1 class="text-xl font-bold mb-4 text-center">Profit Calculator (Long)</h1>
+        <label class="block mb-2">Entry Price:
+          <input type="number" id="longEntryPriceClone1" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" disabled>
+        </label>
+        <label class="block mb-2">Exit Price:
+          <input type="number" id="longExitPriceClone1" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" disabled>
+        </label>
+        <label class="block mb-2">Entry Amount ($):
+          <input type="number" id="longEntryAmountClone1" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" disabled>
+        </label>
+        <label class="block mb-4">Leverage: <span id="longLeverageValueClone1" class="font-semibold">1</span>x
+          <input type="range" id="longLeverageClone1" min="1" max="400" value="1" class="w-full mt-1" disabled>
+        </label>
+        <button onclick="calculate('long')" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4 transition" disabled>Calculate</button>
+        <p id="longResultClone1" class="text-center text-lg font-semibold"></p>
+      </div>
       <!-- Long Calculator -->
-      <div class="calculator bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm visible" id="longCalc">
+      <div class="carousel-item bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm active" id="longCalc">
         <h1 class="text-xl font-bold mb-4 text-center">Profit Calculator (Long)</h1>
         <label class="block mb-2">Entry Price:
           <input type="number" id="longEntryPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
@@ -55,7 +74,7 @@
         <p id="longResult" class="text-center text-lg font-semibold"></p>
       </div>
       <!-- Short Calculator -->
-      <div class="calculator bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm hidden" id="shortCalc">
+      <div class="carousel-item bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm inactive" id="shortCalc">
         <h1 class="text-xl font-bold mb-4 text-center">Profit Calculator (Short)</h1>
         <label class="block mb-2">Entry Price:
           <input type="number" id="shortEntryPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
@@ -71,6 +90,24 @@
         </label>
         <button onclick="calculate('short')" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4 transition">Calculate</button>
         <p id="shortResult" class="text-center text-lg font-semibold"></p>
+      </div>
+      <!-- Short Calculator (Clone for seamless loop) -->
+      <div class="carousel-item bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm inactive" id="shortCalcClone2">
+        <h1 class="text-xl font-bold mb-4 text-center">Profit Calculator (Short)</h1>
+        <label class="block mb-2">Entry Price:
+          <input type="number" id="shortEntryPriceClone2" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" disabled>
+        </label>
+        <label class="block mb-2">Exit Price:
+          <input type="number" id="shortExitPriceClone2" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" disabled>
+        </label>
+        <label class="block mb-2">Entry Amount ($):
+          <input type="number" id="shortEntryAmountClone2" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1" disabled>
+        </label>
+        <label class="block mb-4">Leverage: <span id="shortLeverageValueClone2" class="font-semibold">1</span>x
+          <input type="range" id="shortLeverageClone2" min="1" max="400" value="1" class="w-full mt-1" disabled>
+        </label>
+        <button onclick="calculate('short')" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4 transition" disabled>Calculate</button>
+        <p id="shortResultClone2" class="text-center text-lg font-semibold"></p>
       </div>
     </div>
   </div>
@@ -92,8 +129,8 @@
       document.getElementById('shortLeverageValue').textContent = shortData.leverage || 1;
 
       // Start with Long calculator
-      currentCalculator = 0;
-      updateCalculatorVisibility();
+      currentIndex = 1; // Start at original Long (index 1)
+      updateCarouselPosition(false);
     };
 
     // Update leverage value
@@ -153,53 +190,72 @@
       result.textContent = `Change: ${percent.toFixed(2)}% | With leverage ${leverage}x: ${leveragedPercent.toFixed(2)}% | Profit: $${profit.toFixed(2)}`;
     }
 
-    // Swipe handling with 3D effect
-    let currentCalculator = 0;
+    // Carousel handling
+    let currentIndex = 1; // Start at Long (index 1)
     let startX = 0;
-    const calculators = document.getElementById('calculators');
-    const calcElements = [document.getElementById('longCalc'), document.getElementById('shortCalc')];
+    const carousel = document.getElementById('carousel');
+    const items = document.querySelectorAll('.carousel-item');
+    const totalItems = items.length; // 4 (2 real + 2 clones)
 
-    function updateCalculatorVisibility() {
-      calcElements.forEach((calc, index) => {
-        calc.classList.toggle('visible', index === currentCalculator);
-        calc.classList.toggle('hidden', index !== currentCalculator);
+    function updateCarouselPosition(animate = true) {
+      carousel.style.transition = animate ? 'transform 0.5s ease-in-out' : 'none';
+      carousel.style.transform = `translateX(-${currentIndex * 25}%)`; // 25% per item
+
+      // Update active/inactive classes
+      items.forEach((item, index) => {
+        item.classList.toggle('active', index === currentIndex);
+        item.classList.toggle('inactive', index !== currentIndex);
       });
-      calculators.style.transform = `translateX(-${currentCalculator * 100}%)`;
+
+      // Seamless loop
+      if (currentIndex === 0) {
+        // At Long clone (start), jump to original Long (index 1)
+        setTimeout(() => {
+          currentIndex = 1;
+          updateCarouselPosition(false);
+        }, 500); // After animation
+      } else if (currentIndex === totalItems - 1) {
+        // At Short clone (end), jump to original Short (index 2)
+        setTimeout(() => {
+          currentIndex = 2;
+          updateCarouselPosition(false);
+        }, 500); // After animation
+      }
     }
 
-    calculators.addEventListener('touchstart', (e) => {
+    carousel.addEventListener('touchstart', (e) => {
       startX = e.touches[0].clientX;
     });
 
-    calculators.addEventListener('touchend', (e) => {
+    carousel.addEventListener('touchend', (e) => {
       const endX = e.changedTouches[0].clientX;
       if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
         if (endX > startX) {
           // Swipe right: move to previous
-          currentCalculator = (currentCalculator - 1 + 2) % 2;
+          currentIndex = (currentIndex - 1 + totalItems) % totalItems;
         } else {
           // Swipe left: move to next
-          currentCalculator = (currentCalculator + 1) % 2;
+          currentIndex = (currentIndex + 1) % totalItems;
         }
-        updateCalculatorVisibility();
+        updateCarouselPosition();
       }
     });
 
-    calculators.addEventListener('mousedown', (e) => {
+    carousel.addEventListener('mousedown', (e) => {
       startX = e.clientX;
     });
 
-    calculators.addEventListener('mouseup', (e) => {
+    carousel.addEventListener('mouseup', (e) => {
       const endX = e.clientX;
       if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
         if (endX > startX) {
           // Swipe right: move to previous
-          currentCalculator = (currentCalculator - 1 + 2) % 2;
+          currentIndex = (currentIndex - 1 + totalItems) % totalItems;
         } else {
           // Swipe left: move to next
-          currentCalculator = (currentCalculator + 1) % 2;
+          currentIndex = (currentIndex + 1) % totalItems;
         }
-        updateCalculatorVisibility();
+        updateCarouselPosition();
       }
     });
   </script>
