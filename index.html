@@ -11,14 +11,25 @@
       max-width: 448px;
       overflow: hidden;
       position: relative;
+      perspective: 1000px; /* 3D perspective */
     }
     .calculators {
       display: flex;
-      transition: transform 0.3s ease-in-out;
+      transition: transform 0.5s ease-in-out;
     }
     .calculator {
       min-width: 100%;
       padding: 1rem;
+      transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+      transform-style: preserve-3d;
+    }
+    .calculator.hidden {
+      opacity: 0;
+      transform: rotateY(90deg); /* 3D rotation when hidden */
+    }
+    .calculator.visible {
+      opacity: 1;
+      transform: rotateY(0deg); /* Visible state */
     }
   </style>
 </head>
@@ -26,7 +37,7 @@
   <div class="calculator-container">
     <div class="calculators" id="calculators">
       <!-- Long Calculator -->
-      <div class="calculator bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm">
+      <div class="calculator bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm visible" id="longCalc">
         <h1 class="text-xl font-bold mb-4 text-center">Profit Calculator (Long)</h1>
         <label class="block mb-2">Entry Price:
           <input type="number" id="longEntryPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
@@ -44,7 +55,7 @@
         <p id="longResult" class="text-center text-lg font-semibold"></p>
       </div>
       <!-- Short Calculator -->
-      <div class="calculator bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm">
+      <div class="calculator bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-sm hidden" id="shortCalc">
         <h1 class="text-xl font-bold mb-4 text-center">Profit Calculator (Short)</h1>
         <label class="block mb-2">Entry Price:
           <input type="number" id="shortEntryPrice" step="any" class="w-full p-2 rounded bg-gray-700 border border-gray-600 mt-1">
@@ -82,7 +93,7 @@
 
       // Start with Long calculator
       currentCalculator = 0;
-      updateCalculatorPosition();
+      updateCalculatorVisibility();
     };
 
     // Update leverage value
@@ -142,12 +153,17 @@
       result.textContent = `Change: ${percent.toFixed(2)}% | With leverage ${leverage}x: ${leveragedPercent.toFixed(2)}% | Profit: $${profit.toFixed(2)}`;
     }
 
-    // Swipe handling for switching calculators
+    // Swipe handling with 3D effect
     let currentCalculator = 0;
     let startX = 0;
     const calculators = document.getElementById('calculators');
+    const calcElements = [document.getElementById('longCalc'), document.getElementById('shortCalc')];
 
-    function updateCalculatorPosition() {
+    function updateCalculatorVisibility() {
+      calcElements.forEach((calc, index) => {
+        calc.classList.toggle('visible', index === currentCalculator);
+        calc.classList.toggle('hidden', index !== currentCalculator);
+      });
       calculators.style.transform = `translateX(-${currentCalculator * 100}%)`;
     }
 
@@ -158,8 +174,14 @@
     calculators.addEventListener('touchend', (e) => {
       const endX = e.changedTouches[0].clientX;
       if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
-        currentCalculator = (currentCalculator + 1) % 2; // Cyclic switching
-        updateCalculatorPosition();
+        if (endX > startX) {
+          // Swipe right: move to previous
+          currentCalculator = (currentCalculator - 1 + 2) % 2;
+        } else {
+          // Swipe left: move to next
+          currentCalculator = (currentCalculator + 1) % 2;
+        }
+        updateCalculatorVisibility();
       }
     });
 
@@ -170,8 +192,14 @@
     calculators.addEventListener('mouseup', (e) => {
       const endX = e.clientX;
       if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
-        currentCalculator = (currentCalculator + 1) % 2; // Cyclic switching
-        updateCalculatorPosition();
+        if (endX > startX) {
+          // Swipe right: move to previous
+          currentCalculator = (currentCalculator - 1 + 2) % 2;
+        } else {
+          // Swipe left: move to next
+          currentCalculator = (currentCalculator + 1) % 2;
+        }
+        updateCalculatorVisibility();
       }
     });
   </script>
