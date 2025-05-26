@@ -224,16 +224,19 @@
     }
 
     carousel.addEventListener('touchstart', (e) => {
+      // Ignore if target is a range input
+      if (e.target.type === 'range') return;
       startX = e.touches[0].clientX;
     });
 
     carousel.addEventListener('touchend', (e) => {
+      // Ignore if target is a range input
+      if (e.target.type === 'range') return;
       const endX = e.changedTouches[0].clientX;
       if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
         if (endX > startX) {
           // Swipe right: move to previous
           currentIndex = (currentIndex - 1 + totalItems) % totalItems;
-          if (currentIndex < 0) currentIndex = 1; // Ensure we stay in 0-1 range
         } else {
           // Swipe left: move to next
           currentIndex = (currentIndex + 1) % totalItems;
@@ -243,16 +246,19 @@
     });
 
     carousel.addEventListener('mousedown', (e) => {
+      // Ignore if target is a range input
+      if (e.target.type === 'range') return;
       startX = e.clientX;
     });
 
     carousel.addEventListener('mouseup', (e) => {
+      // Ignore if target is a range input
+      if (e.target.type === 'range') return;
       const endX = e.clientX;
       if (Math.abs(endX - startX) > 50) { // Minimum swipe distance
         if (endX > startX) {
           // Swipe right: move to previous
           currentIndex = (currentIndex - 1 + totalItems) % totalItems;
-          if (currentIndex < 0) currentIndex = 1; // Ensure we stay in 0-1 range
         } else {
           // Swipe left: move to next
           currentIndex = (currentIndex + 1) % totalItems;
